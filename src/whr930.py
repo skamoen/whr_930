@@ -154,6 +154,10 @@ def validate_data(data):
         return data
     else:
         if len(data) >= 10:
+            # Validate checksum
+            checksum = calculate_checksum(data[2:-3])
+            if (checksum != data[-3]):
+                debug_msg("Checksum doesn't match")
             """
             A valid response should be at least 10 bytes (ACK + response with data length = 0)
 
@@ -797,32 +801,37 @@ def get_status():
     except IndexError:
         warning_msg("get_status ignoring incomplete message")
 
+
 def on_message(client, userdata, message):
     debug_msg(
         "message received: topic: {0}, payload: {1}, userdata: {2}".format(
             message.topic, message.payload, userdata
         )
     )
-
     pending_commands.append(message)
 
-def handle_commands():
 
+def handle_commands():
     while len(pending_commands) > 0:
         message = pending_commands.pop(0)
         if message.topic == "house/2/attic/wtw/set_ventilation_level":
             fan_level = int(float(message.payload))
             set_ventilation_level(fan_level)
+            # Update ventilation status after changing it
+            get_ventilation_status()
         elif message.topic == "house/2/attic/wtw/set_comfort_temperature":
             temperature = float(message.payload)
             set_comfort_temperature(temperature)
+            # Update temperatures after changing it
+            get_temp()
+
         else:
             info_msg(
                 "Received a message on topic {} where we do not have a handler for at the moment".format(
                     message.topic
                 )
             )
-    
+
 
 def recon():
     try:
