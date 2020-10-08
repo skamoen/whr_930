@@ -231,7 +231,7 @@ def serial_command(cmd):
     while ser.inWaiting() > 0:
         raw = ser.read(1)
         data.append(raw.hex())
-        data_raw.append(raw)
+        data_raw.append(int(raw))
 
     return validate_data(data, data_raw)
 
