@@ -193,8 +193,7 @@ def validate_data(data, data_raw):
                 or stripped_data[1] != "f3"
                 or stripped_data[2] != "07"
                 or stripped_data[3] != "f0"
-                or stripped_data[-2]         if checksum > 0xFF:
-            checksum -= 0xFF + 1!= "07"
+                or stripped_data[-2] != "07"
                 or stripped_data[-1] != "0f"
             ):
                 warning_msg("Received garbage data, ignored ...")
