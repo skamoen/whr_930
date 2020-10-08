@@ -140,6 +140,12 @@ def calculate_checksum(data):
 
     return checksum
 
+def raw_data_checksum(data_raw):
+    int_data = []
+    for b in data_raw[2:-3]:
+        int_data.append(int(b, 16))
+    return calculate_checksum(int_data)
+
 
 def validate_data(data, data_raw):
     if len(data) <= 1:
@@ -155,8 +161,8 @@ def validate_data(data, data_raw):
     else:
         if len(data) >= 10:
             # Validate checksum
-            checksum = calculate_checksum(data_raw[2:-3])
-            if (checksum != data_raw[-3]):
+            checksum = raw_data_checksum(data_raw)
+            if (checksum != int(data_raw[-3], 16)):
                 debug_msg("Checksum doesn't match")
             """
             A valid response should be at least 10 bytes (ACK + response with data length = 0)
@@ -231,7 +237,7 @@ def serial_command(cmd):
     while ser.inWaiting() > 0:
         raw = ser.read(1)
         data.append(raw.hex())
-        data_raw.append(int(raw, 16))
+        data_raw.append(raw)
 
     return validate_data(data, data_raw)
 
