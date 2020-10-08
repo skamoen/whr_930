@@ -165,8 +165,8 @@ def validate_data(data, data_raw):
                 checksum = raw_data_checksum(data_raw)
                 if (checksum != int(data_raw[-3], 16)):
                     debug_msg("Checksum doesn't match")
-            except ValueError as err:
-                debug_msg("Can't calculate checksum over {} \n full data: {}".format(data[2,-3], data))
+            except ValueError:
+                debug_msg("Can't calculate checksum over {} \n full data: {}".format(data[2:-3], data))
             """
             A valid response should be at least 10 bytes (ACK + response with data length = 0)
 
