@@ -142,7 +142,7 @@ def calculate_checksum(data):
 
 def raw_data_checksum(data_raw):
     int_data = []
-    for b in data_raw[2:-3]:
+    for b in data_raw[4:-3]:
         int_data.append(int(b, 16))
     return calculate_checksum(int_data)
 
