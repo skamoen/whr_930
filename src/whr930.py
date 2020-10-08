@@ -144,11 +144,15 @@ def raw_data_checksum(data_raw):
     int_data = []
     for b in data_raw[4:-3]:
         int_data.append(int.from_bytes(b, "big"))
-    debug_msg("checksum input: {}".format(int_data))
     return calculate_checksum(int_data)
 
 
-def validate_data(data, data_raw):
+def validate_data(data_raw):
+    """Incoming data is in raw bytes. Convert to hex values for easier processing"""
+    data = []
+    for raw in data_raw:
+        data.append(raw.hex())
+
     if len(data) <= 1:
         """always expect a valid ACK at least"""
         return None
@@ -161,16 +165,12 @@ def validate_data(data, data_raw):
         return data
     else:
         if len(data) >= 10:
-            # Validate checksum
-            try:
-                checksum = raw_data_checksum(data_raw)
-                if (checksum != int.from_bytes(data_raw[-3], "big")):
-                    debug_msg("Checksum doesn't match {} vs {} (raw: {})".format(checksum, int.from_bytes(data_raw[-3], "big"), data[-3]))
-                else:
-                    debug_msg("Checksum matches!")
-            except ValueError as err:
-                debug_msg("Can't calculate checksum over {} \n full data: {} \n error: {}".format(data[4:-3], data, err))
-                raise
+            """If the data is more than a regular ACK, validate the checksum"""
+            checksum = raw_data_checksum(data_raw)
+            if (checksum != int.from_bytes(data_raw[-3], "big")):
+                warning_msg("Checksum doesn't match ({} vs {}). Message ignored".format(checksum, int.from_bytes(data_raw[-3], "big")))
+                return None
+            
             """
             A valid response should be at least 10 bytes (ACK + response with data length = 0)
 
@@ -237,16 +237,13 @@ def validate_data(data, data_raw):
 
 def serial_command(cmd):
     data = []
-    data_raw = []
     ser.write(cmd)
     time.sleep(2)
 
     while ser.inWaiting() > 0:
-        raw = ser.read(1)
-        data.append(raw.hex())
-        data_raw.append(raw)
+        data.append(ser.read(1))
 
-    return validate_data(data, data_raw)
+    return validate_data(data)
 
 
 def status_8bit(inp):
