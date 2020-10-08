@@ -141,7 +141,7 @@ def calculate_checksum(data):
     return checksum
 
 
-def validate_data(data):
+def validate_data(data, data_raw):
     if len(data) <= 1:
         """always expect a valid ACK at least"""
         return None
@@ -155,8 +155,8 @@ def validate_data(data):
     else:
         if len(data) >= 10:
             # Validate checksum
-            checksum = calculate_checksum(data[2:-3])
-            if (checksum != data[-3]):
+            checksum = calculate_checksum(data_raw[2:-3])
+            if (checksum != data_raw[-3]):
                 debug_msg("Checksum doesn't match")
             """
             A valid response should be at least 10 bytes (ACK + response with data length = 0)
@@ -224,13 +224,16 @@ def validate_data(data):
 
 def serial_command(cmd):
     data = []
+    data_raw = []
     ser.write(cmd)
     time.sleep(2)
 
     while ser.inWaiting() > 0:
-        data.append(ser.read(1).hex())
+        raw = ser.read(1)
+        data.append(raw.hex())
+        data_raw.append(raw)
 
-    return validate_data(data)
+    return validate_data(data, data_raw)
 
 
 def status_8bit(inp):
