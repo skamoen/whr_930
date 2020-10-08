@@ -144,6 +144,7 @@ def raw_data_checksum(data_raw):
     int_data = []
     for b in data_raw[4:-3]:
         int_data.append(int.from_bytes(b, "big"))
+    debug_msg("checksum input: {}".format(int_data))
     return calculate_checksum(int_data)
 
 
@@ -164,9 +165,12 @@ def validate_data(data, data_raw):
             try:
                 checksum = raw_data_checksum(data_raw)
                 if (int.to_bytes(checksum) != data_raw[-3]):
-                    debug_msg("Checksum doesn't match")
+                    debug_msg("Checksum doesn't match {} vs {}".format(int.to_bytes(checksum).hex(), data_raw[-3].hex()))
+                else:
+                    debug_msg("Checksum matches!")
             except ValueError as err:
                 debug_msg("Can't calculate checksum over {} \n full data: {} \n error: {}".format(data[4:-3], data, err))
+                raise
             """
             A valid response should be at least 10 bytes (ACK + response with data length = 0)
 
