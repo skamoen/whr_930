@@ -163,7 +163,7 @@ def validate_data(data, data_raw):
             # Validate checksum
             try:
                 checksum = raw_data_checksum(data_raw)
-                if (checksum != int(data_raw[-3], 16)):
+                if (int.to_bytes(checksum) != data_raw[-3]):
                     debug_msg("Checksum doesn't match")
             except ValueError as err:
                 debug_msg("Can't calculate checksum over {} \n full data: {} \n error: {}".format(data[4:-3], data, err))
