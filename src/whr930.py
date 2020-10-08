@@ -76,27 +76,6 @@ def debug_data(serial_data):
             n += 1
 
 
-def on_message(client, userdata, message):
-    debug_msg(
-        "message received: topic: {0}, payload: {1}, userdata: {2}".format(
-            message.topic, message.payload, userdata
-        )
-    )
-
-    if message.topic == "house/2/attic/wtw/set_ventilation_level":
-        fan_level = int(float(message.payload))
-        set_ventilation_level(fan_level)
-    elif message.topic == "house/2/attic/wtw/set_comfort_temperature":
-        temperature = float(message.payload)
-        set_comfort_temperature(temperature)
-    else:
-        info_msg(
-            "Received a message on topic {} where we do not have a handler for at the moment".format(
-                message.topic
-            )
-        )
-
-
 def publish_message(msg, mqtt_path):
     mqttc.publish(mqtt_path, payload=msg, qos=0, retain=True)
     time.sleep(0.1)
@@ -818,6 +797,32 @@ def get_status():
     except IndexError:
         warning_msg("get_status ignoring incomplete message")
 
+def on_message(client, userdata, message):
+    debug_msg(
+        "message received: topic: {0}, payload: {1}, userdata: {2}".format(
+            message.topic, message.payload, userdata
+        )
+    )
+
+    pending_commands.append(message)
+
+def handle_commands():
+
+    while len(pending_commands) > 0:
+        message = pending_commands.pop(0)
+        if message.topic == "house/2/attic/wtw/set_ventilation_level":
+            fan_level = int(float(message.payload))
+            set_ventilation_level(fan_level)
+        elif message.topic == "house/2/attic/wtw/set_comfort_temperature":
+            temperature = float(message.payload)
+            set_comfort_temperature(temperature)
+        else:
+            info_msg(
+                "Received a message on topic {} where we do not have a handler for at the moment".format(
+                    message.topic
+                )
+            )
+    
 
 def recon():
     try:
@@ -865,10 +870,13 @@ def main():
     global warning
     global mqttc
     global ser
+    global pending_commands
 
     debug = config.debug
     debug_level = 0
     warning = False
+
+    pending_commands = []
 
     """Connect to the MQTT broker"""
     mqttc = mqtt.Client("whr930")
@@ -904,6 +912,7 @@ def main():
             get_status()
             get_operating_hours()
             get_preheating_status()
+            handle_commands()
 
             time.sleep(5)
             pass
