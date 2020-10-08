@@ -164,7 +164,7 @@ def validate_data(data, data_raw):
             # Validate checksum
             try:
                 checksum = raw_data_checksum(data_raw)
-                if (int.to_bytes(checksum) != data_raw[-3]):
+                if (checksum != int.from_bytes(data_raw[-3], "big")):
                     debug_msg("Checksum doesn't match {} vs {}".format(int.to_bytes(checksum).hex(), data_raw[-3].hex()))
                 else:
                     debug_msg("Checksum matches!")
