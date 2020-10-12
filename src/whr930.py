@@ -66,10 +66,9 @@ def publish_message(msg, mqtt_path):
     mqttc.publish(mqtt_path, payload=msg, qos=0, retain=True)
     time.sleep(0.1)
     logging.debug(
-        "published message %s on topic %s at %s",
+        "published message %s on topic %s",
         msg,
-        mqtt_path,
-        time.asctime(time.localtime(time.time())),
+        mqtt_path
     )
 
 
@@ -159,7 +158,7 @@ def validate_data(data_raw):
             checksum = calculate_incoming_checksum(data_raw)
             if checksum != int.from_bytes(data_raw[-3], "big"):
                 logging.warning(
-                    "Checksum doesn't match ({} vs {}). Message ignored",
+                    "Checksum doesn't match (%s vs %s). Message ignored",
                     checksum,
                     int.from_bytes(data_raw[-3], "big"),
                 )
@@ -172,7 +171,7 @@ def validate_data(data_raw):
             """
             dataset_len = int(data[6], 16)
             message_len = dataset_len + 10
-            logging.debug("Message length is {}", message_len)
+            logging.debug("Message length is %s", message_len)
 
             """ 
             Sometimes more data is captured on the serial port then we expect. We drop those extra
@@ -214,13 +213,13 @@ def validate_data(data_raw):
                     and return the stripped_data set
                     """
                     logging.warning(
-                        "validate_data function got an IndexError, but we continued processing the data: {}",
+                        "validate_data function got an IndexError, but we continued processing the data: %s",
                         _err,
                     )
 
         else:
             logging.warning(
-                "The length of the data we received from the serial port is {}, it should be minimal 10 bytes",
+                "The length of the data we received from the serial port is %s, it should be minimal 10 bytes",
                 len(data),
             )
             return None
@@ -262,7 +261,7 @@ def set_ventilation_level(fan_level):
     """
     if fan_level < 0 or fan_level > 3:
         logging.info(
-            "Ventilation level can be set to 0, 1, 2 and 4, but not {}", fan_level
+            "Ventilation level can be set to 0, 1, 2 and 4, but not %s", fan_level
         )
         return None
 
@@ -272,15 +271,15 @@ def set_ventilation_level(fan_level):
 
     if data:
         if data[0] == "07" and data[1] == "f3":
-            logging.info("Changed the ventilation to {}", fan_level)
+            logging.info("Changed the ventilation to %s", fan_level)
         else:
             logging.warning(
-                "Changing the ventilation to {} went wrong, did not receive an ACK after the set command",
+                "Changing the ventilation to %s went wrong, did not receive an ACK after the set command",
                 fan_level,
             )
     else:
         logging.warning(
-            "Changing the ventilation to {} went wrong, did not receive an ACK after the set command",
+            "Changing the ventilation to %s went wrong, did not receive an ACK after the set command",
             fan_level,
         )
 
@@ -293,7 +292,7 @@ def set_comfort_temperature(temperature):
 
     if temperature < 12 or temperature > 28:
         logging.debug(
-            "Changing the comfort temperature to {} is outside the specification of the range min 12 and max 28",
+            "Changing the comfort temperature to %s is outside the specification of the range min 12 and max 28",
             temperature,
         )
         return None
@@ -304,15 +303,15 @@ def set_comfort_temperature(temperature):
 
     if data:
         if data[0] == "07" and data[1] == "f3":
-            logging.info("Changed comfort temperature to {0}", temperature)
+            logging.info("Changed comfort temperature to %s", temperature)
         else:
             logging.warning(
-                "Changing the comfort temperature to {0} went wrong, did not receive an ACK after the set command",
+                "Changing the comfort temperature to %s went wrong, did not receive an ACK after the set command",
                 temperature,
             )
     else:
         logging.warning(
-            "Changing the comfort temperature to {0} went wrong, did not receive an ACK after the set command",
+            "Changing the comfort temperature to %s went wrong, did not receive an ACK after the set command",
             temperature,
         )
 
@@ -358,7 +357,7 @@ def get_temp():
             )
 
             logging.debug(
-                "comfort_temp: {}, outside_air_temp: {}, supply_air_temp: {}, return_air_temp: {}, exhaust_air_temp: {}",
+                "comfort_temp: %s, outside_air_temp: %s, supply_air_temp: %s, return_air_temp: %s, exhaust_air_temp: %s",
                 comfort_temp,
                 outside_air_temp,
                 supply_air_temp,
@@ -401,7 +400,7 @@ def get_ventilation_status():
                 msg=intake_fan_active, mqtt_path="house/2/attic/wtw/intake_fan_active"
             )
             logging.debug(
-                "return_air_level: {}, supply_air_level: {}, fan_level: {}, intake_fan_active: {}",
+                "return_air_level: %s, supply_air_level: %s, fan_level: %s, intake_fan_active: %s",
                 return_air_level,
                 supply_air_level,
                 fan_level,
@@ -443,12 +442,12 @@ def get_fan_status():
                 msg=exhaust_fan_rpm, mqtt_path="house/2/attic/wtw/exhaust_fan_speed_rpm"
             )
 
-            logging.warning(
-                "intake_fan_speed {}%, exhaust_fan_speed {}%, IntakeAirRPM {}, ExhaustAirRPM {}",
+            logging.debug(
+                "intake_fan_speed %s, exhaust_fan_speed %s, intake_fan_rpm %s, exhaust_fan_rpm %s",
                 intake_fan_speed,
                 exhaust_fan_speed,
                 intake_fan_rpm,
-                exhaust_fan_rpm,
+                exhaust_fan_rpm
             )
     except IndexError:
         logging.warning("get_fan_status ignoring incomplete message")
@@ -476,7 +475,7 @@ def get_filter_status():
             publish_message(
                 msg=filter_status, mqtt_path="house/2/attic/wtw/filter_status"
             )
-            logging.debug("filter_status: {0}", filter_status)
+            logging.debug("filter_status: %s", filter_status)
     except IndexError:
         logging.warning("get_filter_status ignoring incomplete message")
 
@@ -514,7 +513,7 @@ def get_valve_status():
             )
 
             logging.debug(
-                "bypass: {}, bypass_motor_current: {}, pre_heating_motor_current: {}",
+                "bypass: %s, bypass_motor_current: %s, pre_heating_motor_current: %s",
                 bypass,
                 bypass_motor_current,
                 pre_heating_motor_current,
@@ -554,7 +553,7 @@ def get_bypass_control():
             publish_message(msg=summer_mode, mqtt_path="house/2/attic/wtw/summer_mode")
 
             logging.debug(
-                "bypass_factor: {}, bypass_step: {}, bypass_correction: {}, summer_mode: {}",
+                "bypass_factor: %s, bypass_step: %s, bypass_correction: %s, summer_mode: %s",
                 bypass_factor,
                 bypass_step,
                 bypass_correction,
@@ -621,8 +620,8 @@ def get_preheating_status():
             )
 
             logging.debug(
-                "pre_heating_valve_status: {}, frost_protection_active: {}, pre_heating_active: {}, "
-                "frost_protection_minutes: {}, frost_protection_level: {}",
+                "pre_heating_valve_status: %s, frost_protection_active: %s, pre_heating_active: %s, "
+                "frost_protection_minutes: %s, frost_protection_level: %s",
                 pre_heating_valve_status,
                 frost_protection_active,
                 pre_heating_active,
@@ -633,7 +632,7 @@ def get_preheating_status():
         logging.warning("get_preheating_status ignoring incomplete message")
     except KeyError as _err:
         logging.warning(
-            "get_preheating_status incomplete message, missing a key: {}", _err
+            "get_preheating_status incomplete message, missing a key: %s", _err
         )
 
 
@@ -685,8 +684,8 @@ def get_operating_hours():
             )
 
             logging.debug(
-                "level0_hours: {}, level1_hours: {}, level2_hours: {}, level3_hours: {}, "
-                "frost_protection_hours: {}, pre_heating_hours: {}, bypass_open_hours: {}, filter_hours: {}",
+                "level0_hours: %s, level1_hours: %s, level2_hours: %s, level3_hours: %s, "
+                "frost_protection_hours: %s, pre_heating_hours: %s, bypass_open_hours: %s, filter_hours: %s",
                 level0_hours,
                 level1_hours,
                 level2_hours,
@@ -759,20 +758,20 @@ def get_status():
                 ewt_present = status_data["ewt_present"][int(data[17])]
             except ValueError as _value_err:
                 logging.warning(
-                    "get_status function received an inappropriate value: {}",
+                    "get_status function received an inappropriate value: %s",
                     _value_err,
                 )
                 return
             except KeyError as _key_err:
                 logging.warning(
-                    "get status function missing key in dataset: {}, skipping message",
+                    "get status function missing key in dataset: %s, skipping message",
                     _key_err,
                 )
                 return
 
             logging.debug(
-                "preheating_present: {}, bypass_present: {}, type: {}, size: {}, options_present: {}, "
-                "enthalpy_present: {}, ewt_present: {}",
+                "preheating_present: %s, bypass_present: %s, type: %s, size: %s, options_present: %s, "
+                "enthalpy_present: %s, ewt_present: %s",
                 preheating_present,
                 bypass_present,
                 ventilator_type,
@@ -783,23 +782,23 @@ def get_status():
             )
 
             for key, value in status_8bit(active_status1).items():
-                topic = "house/2/attic/wtw/{}_active".format(active1_status_data[key])
-                logging.debug("{}: {}", topic, value)
+                topic = "house/2/attic/wtw/{0}_active".format(active1_status_data[key])
+                logging.debug("%s: %s", topic, value)
                 publish_message(msg=value, mqtt_path=topic)
 
             for key, value in status_8bit(active_status2).items():
                 try:
-                    topic = "house/2/attic/wtw/{}_active".format(
+                    topic = "house/2/attic/wtw/{0}_active".format(
                         active2_status_data[key]
                     )
-                    logging.debug("{}: {}", topic, value)
+                    logging.debug("%s: %s", topic, value)
                     publish_message(msg=value, mqtt_path=topic)
                 except KeyError:
                     pass
 
             for key, value in status_8bit(active_status3).items():
-                topic = "house/2/attic/wtw/{}_active".format(active3_status_data[key])
-                logging.debug("{}: {}", topic, value)
+                topic = "house/2/attic/wtw/{0}_active".format(active3_status_data[key])
+                logging.debug("%s: %s", topic, value)
                 publish_message(msg=value, mqtt_path=topic)
 
             publish_message(
@@ -823,7 +822,7 @@ def get_status():
 
 def on_message(client, userdata, message):
     logging.debug(
-        "message received: topic: {0}, payload: {1}, userdata: {2}",
+        "message received: topic: %s, payload: %s, userdata: %s",
         message.topic,
         message.payload,
         userdata,
@@ -846,7 +845,7 @@ def handle_commands():
             get_temp()
         else:
             logging.info(
-                "Received a message on topic {} where we do not have a handler for at the moment",
+                "Received a message on topic %s where we do not have a handler for at the moment",
                 message.topic,
             )
 
@@ -903,11 +902,15 @@ def main():
     debug_level = 0
     warning = False
 
-    logging.basicConfig(
-        format="%(asctime)s %(levelname)s:%(message)s", datefmt="%d-%m-%Y %H:%M:%S"
-    )
+    log_level = logging.INFO
     if debug is True:
-        logging.basicConfig(level=logging.DEBUG)
+        log_level = logging.DEBUG
+
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)s: %(message)s",
+        datefmt="%d-%m-%Y %H:%M:%S",
+        level=log_level,
+    )
 
     pending_commands = []
 
